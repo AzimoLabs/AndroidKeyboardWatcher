@@ -1,0 +1,87 @@
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+
+group = GROUP
+version = VERSION_NAME
+
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'jar'
+                groupId GROUP
+                artifactId "keyboardwatcher"
+
+                name "KeyboardWatcher"
+                description POM_DESCRIPTION
+                url POM_URL
+
+                licenses {
+                    license {
+                        name POM_LICENCE_NAME
+                        url POM_LICENCE_URL
+                        Distribution POM_LICENCE_DIST
+                    }
+                }
+
+                developers {
+                    developer {
+                        id POM_DEVELOPER_ID
+                        name POM_DEVELOPER_NAME
+                    }
+                }
+
+                scm {
+                    url POM_SCM_URL
+                    connection POM_SCM_CONNECTION
+                    developerConnection POM_SCM_DEV_CONNECTION
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    // Global gradle.properties
+    user = project.hasProperty('BINTRAY_AZIMO_USER') ? project.getProperty('BINTRAY_AZIMO_USER') : ""
+    key = project.hasProperty('BINTRAY_AZIMO_KEY') ? project.getProperty('BINTRAY_AZIMO_KEY') : ""
+
+    configurations = ['archives']
+    pkg {
+        repo = 'maven'
+        name = 'KeyboardWatcher'
+        desc = POM_DESCRIPTION
+        websiteUrl = POM_URL
+        vcsUrl = GIT_URL
+        licenses = ["Apache-2.0"]
+        publish = true
+        publicDownloadNumbers = true
+        version {
+            desc = POM_DESCRIPTION
+            gpg {
+                sign = true
+                passphrase = project.hasProperty('BINTRAY_AZIMO_GPG_PASSWORD') ? project.getProperty('BINTRAY_AZIMO_GPG_PASSWORD') : ""
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
