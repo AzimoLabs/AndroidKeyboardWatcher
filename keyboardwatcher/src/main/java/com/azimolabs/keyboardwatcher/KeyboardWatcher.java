@@ -2,6 +2,7 @@ package com.azimolabs.keyboardwatcher;
 
 import android.app.Activity;
 import android.os.Build;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -26,14 +27,22 @@ public class KeyboardWatcher {
     public KeyboardWatcher bindKeyboardWatcher(OnKeyboardToggleListener onKeyboardToggleListener) {
         this.onKeyboardToggleListener = onKeyboardToggleListener;
         final View root = activity.findViewById(android.R.id.content);
-        int inputModeFlag = activity.getWindow().getAttributes().softInputMode & WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
-        if (root instanceof ViewGroup && inputModeFlag != 0) {
-            rootView = (ViewGroup) root;
-            viewTreeObserverListener = new GlobalLayoutListener();
-            rootView.getViewTreeObserver().addOnGlobalLayoutListener(viewTreeObserverListener);
+        if (hasAdjustResizeInputMode()) {
+            if (root instanceof ViewGroup) {
+                rootView = (ViewGroup) root;
+                viewTreeObserverListener = new GlobalLayoutListener();
+                rootView.getViewTreeObserver().addOnGlobalLayoutListener(viewTreeObserverListener);
+            }
+        } else {
+            Log.w("KeyboardWatcher", "Activity " + activity.getClass().getSimpleName() + " should have windowSoftInputMode=\"adjustResize\"" +
+                    "to make KeyboardWatcher working. You can set it in AndroidManifest.xml");
         }
 
         return this;
+    }
+
+    private boolean hasAdjustResizeInputMode() {
+        return (activity.getWindow().getAttributes().softInputMode & WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE) != 0;
     }
 
     public void unbindKeyboardWatcher() {
