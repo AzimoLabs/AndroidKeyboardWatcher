@@ -1,1 +1,1 @@
-include ':app', ':keyboardwatcher'
+include ':sample', ':keyboardwatcher'
