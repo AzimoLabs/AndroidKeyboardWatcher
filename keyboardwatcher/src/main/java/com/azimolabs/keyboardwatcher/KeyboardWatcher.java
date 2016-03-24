@@ -2,93 +2,85 @@ package com.azimolabs.keyboardwatcher;
 
 import android.app.Activity;
 import android.os.Build;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.view.WindowManager;
+
+import java.lang.ref.WeakReference;
 
 /**
  * Created by froger_mcs on 21/03/16.
  */
 public class KeyboardWatcher {
 
-    private Activity activity;
-    private ViewGroup rootView;
+    private WeakReference<Activity> activityRef;
+    private WeakReference<View> rootViewRef;
+    private WeakReference<OnKeyboardToggleListener> onKeyboardToggleListenerRef;
     private ViewTreeObserver.OnGlobalLayoutListener viewTreeObserverListener;
-    private OnKeyboardToggleListener onKeyboardToggleListener;
 
-    public static KeyboardWatcher initWith(Activity activity) {
-        KeyboardWatcher keyboardWatcher = new KeyboardWatcher();
-        keyboardWatcher.activity = activity;
-        return keyboardWatcher;
+    public KeyboardWatcher(Activity activity) {
+        activityRef = new WeakReference<>(activity);
+        initialize();
     }
 
-    public KeyboardWatcher bindKeyboardWatcher(OnKeyboardToggleListener onKeyboardToggleListener) {
-        this.onKeyboardToggleListener = onKeyboardToggleListener;
-        final View root = activity.findViewById(android.R.id.content);
-        if (hasAdjustResizeInputMode()) {
-            if (root instanceof ViewGroup) {
-                rootView = (ViewGroup) root;
-                viewTreeObserverListener = new GlobalLayoutListener();
-                rootView.getViewTreeObserver().addOnGlobalLayoutListener(viewTreeObserverListener);
-            }
-        } else {
-            Log.w("KeyboardWatcher", "Activity " + activity.getClass().getSimpleName() + " should have windowSoftInputMode=\"adjustResize\"" +
-                    "to make KeyboardWatcher working. You can set it in AndroidManifest.xml");
-        }
+    public void setListener(OnKeyboardToggleListener onKeyboardToggleListener) {
+        onKeyboardToggleListenerRef = new WeakReference<>(onKeyboardToggleListener);
+    }
 
-        return this;
+    public void destroy() {
+        if (rootViewRef.get() != null && Build.VERSION.SDK_INT >= 16) {
+            rootViewRef.get().getViewTreeObserver().removeOnGlobalLayoutListener(viewTreeObserverListener);
+        } else {
+            rootViewRef.get().getViewTreeObserver().removeGlobalOnLayoutListener(viewTreeObserverListener);
+        }
+    }
+
+    private void initialize() {
+        if (hasAdjustResizeInputMode()) {
+            viewTreeObserverListener = new GlobalLayoutListener();
+            rootViewRef = new WeakReference<>(activityRef.get().findViewById(Window.ID_ANDROID_CONTENT));
+            rootViewRef.get().getViewTreeObserver().addOnGlobalLayoutListener(viewTreeObserverListener);
+        } else {
+            throw new IllegalArgumentException(String.format("Activity %s should have windowSoftInputMode=\"adjustResize\"" +
+                    "to make KeyboardWatcher working. You can set it in AndroidManifest.xml", activityRef.get().getClass().getSimpleName()));
+        }
     }
 
     private boolean hasAdjustResizeInputMode() {
-        return (activity.getWindow().getAttributes().softInputMode & WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE) != 0;
-    }
-
-    public void unbindKeyboardWatcher() {
-        if (rootView != null && viewTreeObserverListener != null) {
-            if (Build.VERSION.SDK_INT >= 16) {
-                rootView.getViewTreeObserver().removeOnGlobalLayoutListener(viewTreeObserverListener);
-            } else {
-                rootView.getViewTreeObserver().removeGlobalOnLayoutListener(viewTreeObserverListener);
-            }
-
-            this.onKeyboardToggleListener = null;
-            this.activity = null;
-        }
+        return (activityRef.get().getWindow().getAttributes().softInputMode & WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE) != 0;
     }
 
     private class GlobalLayoutListener implements ViewTreeObserver.OnGlobalLayoutListener {
         int initialValue;
-        private boolean hasSentInitialAction;
-        private boolean isKeyboardShown;
+        boolean hasSentInitialAction;
+        boolean isKeyboardShown;
 
         @Override
         public void onGlobalLayout() {
             if (initialValue == 0) {
-                initialValue = rootView.getHeight();
+                initialValue = rootViewRef.get().getHeight();
             } else {
-                if (initialValue > rootView.getHeight()) {
-                    if (onKeyboardToggleListener != null) {
+                if (initialValue > rootViewRef.get().getHeight()) {
+                    if (onKeyboardToggleListenerRef != null) {
                         if (!hasSentInitialAction || !isKeyboardShown) {
                             isKeyboardShown = true;
-                            onKeyboardToggleListener.onKeyboardShown(initialValue - rootView.getHeight());
+                            onKeyboardToggleListenerRef.get().onKeyboardShown(initialValue - rootViewRef.get().getHeight());
                         }
                     }
                 } else {
                     if (!hasSentInitialAction || isKeyboardShown) {
                         isKeyboardShown = false;
-                        rootView.post(new Runnable() {
+                        rootViewRef.get().post(new Runnable() {
                             @Override
                             public void run() {
-                                if (onKeyboardToggleListener != null) {
-                                    onKeyboardToggleListener.onKeyboardClosed();
+                                if (onKeyboardToggleListenerRef.get() != null) {
+                                    onKeyboardToggleListenerRef.get().onKeyboardClosed();
                                 }
                             }
                         });
                     }
                 }
-
                 hasSentInitialAction = true;
             }
         }
