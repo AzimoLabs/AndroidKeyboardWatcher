@@ -48,7 +48,11 @@ public class MainActivity extends Activity implements KeyboardWatcher.OnKeyboard
 
 ## Download
 
+### Java code
+
 If you don't want to add another dependency to your project, just copy [KeyboardWatcher.java](https://github.com/AzimoLabs/AndroidKeyboardWatcher/blob/master/keyboardwatcher/src/main/java/com/azimolabs/keyboardwatcher/KeyboardWatcher.java) to your source directory.
+
+### Library dependency
 
 ```gradle
 dependencies {
