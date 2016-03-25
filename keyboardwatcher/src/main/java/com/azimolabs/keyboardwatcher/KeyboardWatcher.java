@@ -63,7 +63,7 @@ public class KeyboardWatcher {
                 initialValue = rootViewRef.get().getHeight();
             } else {
                 if (initialValue > rootViewRef.get().getHeight()) {
-                    if (onKeyboardToggleListenerRef != null) {
+                    if (onKeyboardToggleListenerRef.get() != null) {
                         if (!hasSentInitialAction || !isKeyboardShown) {
                             isKeyboardShown = true;
                             onKeyboardToggleListenerRef.get().onKeyboardShown(initialValue - rootViewRef.get().getHeight());
