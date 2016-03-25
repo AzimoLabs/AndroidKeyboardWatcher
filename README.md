@@ -60,19 +60,6 @@ dependencies {
 }
 ```
 
-If you have issues with downloading it from jCenter repository please add temporary those lines to your root gradle file:
-
-```gradle
-allprojects {
-    repositories {
-        jcenter()
-        maven{ //This will get KeyboardWatcher from local bintray Maven repository
-            url 'https://dl.bintray.com/azimolabs/maven'
-        }
-    }
-}
-```
-
 
 ## License
 
