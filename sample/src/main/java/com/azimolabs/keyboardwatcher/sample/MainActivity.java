@@ -15,18 +15,19 @@ public class MainActivity extends AppCompatActivity implements KeyboardWatcher.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView = (TextView) findViewById(R.id.textView);
-        keyboardWatcher = KeyboardWatcher.initWith(this).bindKeyboardWatcher(this);
+        keyboardWatcher = new KeyboardWatcher(this);
+        keyboardWatcher.setListener(this);
     }
 
     @Override
     protected void onDestroy() {
-        keyboardWatcher.unbindKeyboardWatcher();
+        keyboardWatcher.destroy();
         super.onDestroy();
     }
 
     @Override
     public void onKeyboardShown(int keyboardSize) {
-        textView.setText("Shown\nkeyboard size: " +keyboardSize + "px");
+        textView.setText(String.format("Shown\nkeyboard size: %dpx", keyboardSize));
     }
 
     @Override
