@@ -25,12 +25,13 @@ public class MainActivity extends Activity implements KeyboardWatcher.OnKeyboard
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //...
-        keyboardWatcher = KeyboardWatcher.initWith(this).bindKeyboardWatcher(this);
+        keyboardWatcher = new KeyboardWatcher(this);
+        keyboardWatcher.setListener(this);
     }
 
     @Override
     protected void onDestroy() {
-        keyboardWatcher.unbindKeyboardWatcher();
+        keyboardWatcher.destroy();
         super.onDestroy();
     }
 
