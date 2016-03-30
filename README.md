@@ -57,7 +57,7 @@ If you don't want to add another dependency to your project, just copy [Keyboard
 
 ```gradle
 dependencies {
-  compile 'com.azimolabs.keyboardwatcher:keyboardwatcher:0.1.2'
+  compile 'com.azimolabs.keyboardwatcher:keyboardwatcher:0.1.3'
 }
 ```
 
