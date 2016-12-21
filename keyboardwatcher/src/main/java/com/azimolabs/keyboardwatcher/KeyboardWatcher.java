@@ -21,7 +21,14 @@ public class KeyboardWatcher {
 
     public KeyboardWatcher(Activity activity) {
         activityRef = new WeakReference<>(activity);
-        initialize();
+        if (hasAdjustResizeInputMode()) {
+            viewTreeObserverListener = new GlobalLayoutListener();
+            rootViewRef = new WeakReference<>(activityRef.get().findViewById(Window.ID_ANDROID_CONTENT));
+            rootViewRef.get().getViewTreeObserver().addOnGlobalLayoutListener(viewTreeObserverListener);
+        } else {
+            throw new IllegalArgumentException(String.format("Activity %s should have windowSoftInputMode=\"adjustResize\"" +
+                    "to make KeyboardWatcher working. You can set it in AndroidManifest.xml", activityRef.get().getClass().getSimpleName()));
+        }
     }
 
     public void setListener(OnKeyboardToggleListener onKeyboardToggleListener) {
@@ -35,17 +42,6 @@ public class KeyboardWatcher {
             } else {
                 rootViewRef.get().getViewTreeObserver().removeGlobalOnLayoutListener(viewTreeObserverListener);
             }
-    }
-
-    private void initialize() {
-        if (hasAdjustResizeInputMode()) {
-            viewTreeObserverListener = new GlobalLayoutListener();
-            rootViewRef = new WeakReference<>(activityRef.get().findViewById(Window.ID_ANDROID_CONTENT));
-            rootViewRef.get().getViewTreeObserver().addOnGlobalLayoutListener(viewTreeObserverListener);
-        } else {
-            throw new IllegalArgumentException(String.format("Activity %s should have windowSoftInputMode=\"adjustResize\"" +
-                    "to make KeyboardWatcher working. You can set it in AndroidManifest.xml", activityRef.get().getClass().getSimpleName()));
-        }
     }
 
     private boolean hasAdjustResizeInputMode() {
