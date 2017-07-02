@@ -1,7 +1,9 @@
 package com.azimolabs.keyboardwatcher;
 
 import android.app.Activity;
+import android.graphics.Point;
 import android.os.Build;
+import android.view.Display;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
@@ -59,14 +61,23 @@ public class KeyboardWatcher {
 
         @Override
         public void onGlobalLayout() {
-            if (initialValue == 0) {
-                initialValue = rootViewRef.get().getHeight();
+            final int screenHeight;
+            if (Build.VERSION.SDK_INT >= 21) {
+                Display display = activityRef.get().getWindowManager().getDefaultDisplay();
+                Point size = new Point();
+                display.getSize(size);
+                screenHeight = size.y;
             } else {
-                if (initialValue > rootViewRef.get().getHeight()) {
+                screenHeight = rootViewRef.get().getHeight();
+            }
+            if (initialValue == 0) {
+                initialValue = screenHeight;
+            } else {
+                if (initialValue > screenHeight) {
                     if (onKeyboardToggleListenerRef.get() != null) {
                         if (!hasSentInitialAction || !isKeyboardShown) {
                             isKeyboardShown = true;
-                            onKeyboardToggleListenerRef.get().onKeyboardShown(initialValue - rootViewRef.get().getHeight());
+                            onKeyboardToggleListenerRef.get().onKeyboardShown(initialValue - screenHeight);
                         }
                     }
                 } else {
